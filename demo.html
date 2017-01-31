@@ -14,11 +14,10 @@
 	<!--[if lt IE 9]>
 		<script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script>
 	<![endif]-->
-	<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
-	<script type="text/javascript" src="javascript/jquery.novacancy.js"></script>
+	<script type="text/javascript" src="javascript/jquery.novacancy.min.js"></script>
 	<script type="text/javascript">
-		$(document).ready(function() {
-			$('#no').novacancy({
+		document.addEventListener('DOMContentLoaded', function(){
+			novacancy.init(document.querySelectorAll('#no'),{
 				'reblinkProbability': 0.1,
 				'blinkMin': 0.2,
 				'blinkMax': 0.6,
@@ -28,7 +27,8 @@
 				'glow': ['0 0 80px #ffffff', '0 0 30px #008000', '0 0 6px #0000ff']
 			}); 
 
-			$('#vacancy').novacancy({
+
+			novacancy.init(document.querySelectorAll('#vacancy'),{
 				'blink': 1,
 				'off': 1,
 				'color': 'Red',

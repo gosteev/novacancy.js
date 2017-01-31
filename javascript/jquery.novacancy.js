@@ -12,12 +12,11 @@
 * @date 08-03-2016
 */
 
-;(function($){
+;(function(){
   "use strict";
 
   var Novacancy = function(el, settings) {
     var _me = this;
-    var _el = $(el);
     var _settings;
     var _powerOn;
     var _loopTimeout;
@@ -27,24 +26,24 @@
     /* ------------------------- */
 
     this.repeat = function() {
-      if (_el[0].novacancy) {
+      if (el.novacancy) {
         return true;
       } else {
-        _el[0].novacancy = true;
+        el.novacancy = true;
         return false;
       }
     };
 
     this.writeCSS = function() {
       var cssBuilder = _me.css();
-      var style = $('<style>'+cssBuilder+'</style>');
-      $('body').append(style);
+      var style = '<style>'+cssBuilder+'</style>';
+      document.querySelectorAll('body')[0].insertAdjacentHTML('beforeend',style);
     };
 
     this.selector = function() {
-      var selector = _el[0].tagName;
-      if (_el[0].id) selector += ("#" + _el[0].id);
-      if (_el[0].className) selector += ("." + _el[0].className);
+      var selector = el.tagName;
+      if (el.id) selector += ("#" + el.id);
+      if (el.className) selector += ("." + el.className);
 
       return selector;
     };
@@ -80,10 +79,10 @@
     this.blink = function(item) {
       /* blink 1 time */
       _me.off(item);
-      item[0].blinking = true;
+      item.blinking = true;
       setTimeout(function() {
         _me.on(item);
-        item[0].blinking = false;
+        item.blinking = false;
         _me.reblink(item);
       }, _me.rand(_settings.blinkMin, _settings.blinkMax) );
     };
@@ -98,20 +97,22 @@
     };
 
     this.on = function(item) {
-      item.removeClass(_settings.classOff).addClass(_settings.classOn);
+      removeClass(item,_settings.classOff);
+      addClass(item,_settings.classOn);
     };
 
     this.off = function(item) {
-      item.removeClass(_settings.classOn).addClass(_settings.classOff);
+      removeClass(item,_settings.classOn);
+      addClass(item,_settings.classOff);
     };
 
     this.buildHTML = function() {
       var htmlBuilder = '';
 
-      $.each(_el.contents(), function(index, value) {
+      Array.prototype.forEach.call(el.childNodes, function(value, index){
         if (value.nodeType == 3) { /* text */
           var txts = value.nodeValue.split('');
-          $.each(txts, function(index, value) {
+          Array.prototype.forEach.call(txts, function(value, index){
             htmlBuilder += ( '<span class="novacancy '+_settings.classOn+'">'+value+'</span>' );
           });
         } else {
@@ -137,8 +138,8 @@
 
       offArr = randomArray.splice(0, off);
 
-      $.each(offArr, function(index, value) {
-        _me.off(_items.eq(value));
+      Array.prototype.forEach.call(offArr, function(value, index){
+        _me.off(_items[value]);
       });
 
       /* blink array make */
@@ -178,9 +179,9 @@
       var item;
 
       num = _blinkArr[_me.rand(0, _blinkArr.length-1)];  
-      item = _items.eq(num);
+      item = _items[num];
 
-      if (!item[0].blinking) _me.blink(item);
+      if (!item.blinking) _me.blink(item);
 
       _loopTimeout = setTimeout(function() {
         _me.loop();
@@ -204,11 +205,10 @@
     };
 
     this.bindEvent = function() {
-      _el.on('blinkOn', function(e) {
+      el.addEventListener('blinkOn', function(e) {
         _me.blinkOn();
       });
-
-      _el.on('blinkOff', function(e) {
+      el.addEventListener('blinkOff', function(e) {
         _me.blinkOff();
       });
     };
@@ -220,8 +220,8 @@
     _settings = settings;
     _powerOn = false;
     _loopTimeout = 0;
-    _el.html(_me.buildHTML());
-    _items = _el.find('span.novacancy');
+    el.innerHTML = _me.buildHTML();
+    _items = el.querySelectorAll('span.novacancy');
     _blinkArr = _me.arrayMake();
     _me.bindEvent();
     _me.writeCSS();
@@ -232,8 +232,35 @@
 
   /* ------------------------- */
 
+  var extend = function(out) {
+    out = out || {};
+    for (var i = 1; i < arguments.length; i++) {
+      if (!arguments[i])
+        continue;
+      for (var key in arguments[i]) {
+        if (arguments[i].hasOwnProperty(key))
+          out[key] = arguments[i][key];
+      }
+    }
+    return out;
+  };
+
+  var removeClass = function(el, className) {
+    if (el.classList)
+      el.classList.remove(className);
+    else
+      el.className = el.className.replace(new RegExp('(^|\\b)' + className.split(' ').join('|') + '(\\b|$)', 'gi'), ' ');
+  };
+
+  var addClass = function(el, className) {
+    if (el.classList)
+      el.classList.add(className);
+    else
+      el.className += ' ' + className;
+  };
+
   var settings = function(options){
-    var settings = $.extend({
+    var settings = extend({
       'reblinkProbability': (1/3),
       'blinkMin': 0.01,
       'blinkMax': 0.5,
@@ -257,10 +284,12 @@
     return settings;
   };
 
-  $.fn.novacancy = function(options) {
-    return $.each(this, function(index, value) {
-      new Novacancy(this, settings(options));
-    });
-  };
+  window.novacancy = {};
 
-})(jQuery);
+  window.novacancy.init = function(el, options){
+    return Array.prototype.forEach.call(el, function(index, value){
+      new Novacancy(el[0], settings(options));
+    });
+  }
+
+})();
